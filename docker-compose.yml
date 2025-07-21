@@ -1,0 +1,40 @@
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: activity_registration_db
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: activity_registration
+    volumes:
+      - mongodb_data:/data/db
+      - ./mongodb/init:/docker-entrypoint-initdb.d
+    networks:
+      - activity_network
+
+  backend:
+    build: ./backend
+    container_name: activity_registration_backend
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+      - MONGODB_URI=mongodb://admin:password123@mongodb:27017/activity_registration?authSource=admin
+    depends_on:
+      - mongodb
+    volumes:
+      - ./backend:/app
+    networks:
+      - activity_network
+
+volumes:
+  mongodb_data:
+
+networks:
+  activity_network:
+    driver: bridge
